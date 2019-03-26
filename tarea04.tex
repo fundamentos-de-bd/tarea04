@@ -7,6 +7,7 @@
 
 % Más opciones para enumerar
 \usepackage{enumitem}
+\usepackage{amsmath}
 
 % Manejo de imágenes
 \usepackage{graphicx}
@@ -45,23 +46,54 @@
                     Toda la información de las obras, nombre del artista que la
                     realizó y país de las obras que se realizaron con estilo
                     Surrealista o Impresionista.
+                    \begin{align*}
+                        r &\leftarrow \sigma_{estilo = 'Surrealista'}(Estilo) 
+                        \cup \sigma_{estilo = 'Impresionista'}(Estilo) \\
+                        r &\leftarrow \pi_{nombre, pais}(Artista) \bowtie r \\
+                        r &\leftarrow Obra \bowtie r
+                    \end{align*}
                 }
                 \item {
                     Una lista con el nombre de los artistas y la cantidad de
                     obras que realizó (entre pinturas, esculturas y miscelánea).
+                    \begin{align*}
+                        r &\leftarrow \pi_{nombre}(Artista) \bowtie \pi_{nombre, 
+                        idObra}(Obra) \\
+                        r &\leftarrow (_{nombre}Y_{count(idObra)}(r)) \\
+                        r &\leftarrow \rho_{numObras(count(idObra))}(r)
+                    \end{align*}
                 }
                 \item {
                     Lista con la cantidad de obras que se tiene por cada estilo
                     (entre pinturas, esculturas y miscelánea).
+                    \begin{align*}
+                        r &\leftarrow Estilo \bowtie \pi_{nombre, idObra}(Obra) \\
+                        r &\leftarrow (_{estilo}Y_{count(idObra)}(r)) \\
+                        r &\leftarrow \rho_{numObras(count(idObra))}(r)
+                    \end{align*}
                 }
                 \item {
-                    Obtener el año en que menos obras se realizaon y la obra más
+                    Obtener el año en que menos obras se realizaron y la obra más
                     constosa de ese año.
+                    \begin{align*}
+                        r &\leftarrow (_{anio}Y_{count(idObra)}(Obra)) \\
+                        r &\leftarrow \rho_{numObras(count(idObra))}(r) \\
+                        minA &\leftarrow Min_{numObras}(r) \\
+                        o &\leftarrow \sigma_{anio = minA}(\pi_{idObra, anio}(Obra)) \\
+                        o &\leftarrow \pi_{costo, idObra}(Permanente) \bowtie o \\
+                        maxP &\leftarrow (_{idObra}Y_{max_(precio)}(o)) \\
+                        maxP &\leftarrow \pi_{idObra}(maxP) \bowtie Obra
+                    \end{align*}
                 }
                 \item {
                     Toda información (obras y artistas) de las obras que se
                     obtuvieron en préstamo el 28 de noviembre de año 2014 y que
                     no han sido devuletas.
+                    \begin{align*}
+                        r &\leftarrow \pi_{idObra}(\sigma_{fechaPres = '28/11/2014' \land
+                        fechaDev=null}(Prestada))\\
+                        r &\leftarrow (Obra \bowtie r)\bowtie Artista
+                    \end{align*}
                 }
             \end{enumerate}
             \item {
@@ -80,48 +112,97 @@
                         Lista con la \textbf{CURP} y \textbf{nombre} de cada
                         empleado que trabaja en \textbf{Flanders Ship Asociados
                         (FSA)}.
+                        \begin{align*}
+                            r &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 
+                            'Flanders Ship Asociados(FSA)'}(Empresa)) \\
+                            r &\leftarrow \pi_{CURP}(Trabaja \bowtie r) \\
+                            r &\leftarrow \pi_{CURP, nombre}(Empleado \bowtie r)
+                        \end{align*}
                     }
                     \item {
                         Averiguar el \textbf{nombre} y la \textbf{ciudad de
                         residencia} de todos los empleados que trabajan para el 
                         \textbf{Compumundo Hipermega Red (CHR)}.
+                        \begin{align*}
+                            r &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 
+                            'Compumundo Hipermega Red (CHR)'}(Empresa)) \\
+                            r &\leftarrow \pi_{CURP}(Trabaja \bowtie r) \\
+                            r &\leftarrow \pi_{nombre, ciudad}(Empleado \bowtie r)
+                        \end{align*}
                     }
                     \item {
                         El \textbf{nombre}, \textbf{la calle} y la \textbf{ciudad
                         de residencia} de todos los empleados que trabajan para
                         \textbf{FSA} y ganan entre \textbf{\$150,000} y
                         \textbf{\$190,000} anuales.
+                        \begin{align*}
+                            r &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 
+                            'Compumundo Hipermega Red (CHR)'}(Empresa)) \\
+                            r &\leftarrow \sigma_{sueldo\geq 150000\land sueldo\leq 190000}
+                            (Trabaja \bowtie r) \\
+                            r &\leftarrow \pi_{CURP}(r) \bowtie Empleado\\
+                            r &\leftarrow \pi_{nombre, calle, ciudad}(r)
+                        \end{align*}
                     }
                     \item {
                         Encontrar el \textbf{nombre} y \textbf{CURP} de los
                         empleados que vivan en la misma ciudad en que está
                         ubicada la compañia a la que prestan sus servicios.
+                        \begin{align*}
+                            r &\leftarrow \rho_{ciudEmpr(ciudad)}(\rho_{nomEmpr(nombre)}
+                            (Empresa))\\
+                            r &\leftarrow (Empleado\bowtie Trabaja) \bowtie r\\
+                            r &\leftarrow \pi_{nombre, CURP}(\sigma_{ciudad=ciudadEmpr}(r))
+                        \end{align*}
                     }
                     \item {
                         Lista con el  \textbf{nombre} de los empleados que viven
                         en la \textbf{misma calle} y la \textbf{ciudad} de su
-                        \textbf{jefe}.
                     }
                     \item {
                         Averiguar la \textbf{CURP} de los empleados que no
                         trabajan para \textbf{FSA} pero sí para \textbf{CHR}.
+                        \begin{align*}
+                            r &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 'FSA'}(Empresa)) \\
+                            r &\leftarrow \pi_{CURP}(Trabaja \bowtie r) \\
+                            p &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 'CHR'}(Empresa)) \\
+                            p &\leftarrow \pi_{CURP}(Trabaja \bowtie p) \\
+                            r &\leftarrow r - p
+                        \end{align*}
                     }
                     \item {
                         Encontrar el \textbf{nombre}, \textbf{CURP} y
                         \textbf{ciudad de residencia} de todos los jefes
                         registrados en la base de datos.
+                        \begin{align*}
+                            r &\leftarrow \rho_{CURP(CURPJ)}(\pi_{CURPJ}(Jefe)) \\
+                            r &\leftarrow \pi_{nombre, CURP, ciudad}(r \bowtie Empleado)
+                        \end{align*}
                     }
                     \item {
                         Una lista con el \textbf{nombre} de todos los empleados
                         que trabajan para  \textbf{CHR} pero no para
                         \textbf{FSA}.
+                        \begin{align*}
+                            r &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 'CHR'}(Empresa)) \\
+                            r &\leftarrow \pi_{CURP}(Trabaja \bowtie r) \\
+                            p &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 'FSA'}(Empresa)) \\
+                            p &\leftarrow \pi_{CURP}(Trabaja \bowtie p) \\
+                            r &\leftarrow r - p \\
+                            r &\leftarrow pi_{nombre}(r \bowtie Empleado)
+                        \end{align*}
                     }
                     \item {
                         Lista con la \textbf{CURP} de los empleados que ganan
                         más que cualquier empleado \textbf{FSA}.
+                        \begin{align*}
+                            r &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 'FSA'}(Empresa)) \\
+                            m &\leftarrow Max_{sueldo}(Trabaja \bowtie r) \\
+                            e &\leftarrow \pi_{CURP}(\sigma_{sueldo>m}(Trabaja))
+                        \end{align*}
                     }
                     \item {
-                        Lista cin el \textbf{nombre de las companías} que están
+                        Lista con el \textbf{nombre de las companías} que están
                         instaladas en una ciudad donde haya un
                         \textbf{Krusty Burger}.
                     }
@@ -132,6 +213,14 @@
                     \item {
                         Disminuir el sueldo de los empleados que trabajan en
                         \textbf{Mr. Plow} en un \textbf{8\%}.
+                        \begin{align*}
+                            r &\leftarrow \pi_{idEmpresa}(\sigma_{nombre = 'Mr. Plow'}(Empresa)) \\
+                            r &\leftarrow Trabaja \bowtie r \\
+                            o &\leftarrow Trabaja - r \\
+                            r &\leftarrow \pi_{CURP, idEmpresa, sueldo*1.08}(r)\\
+                            r &\leftarrow \rho_{sueldo(sueldo*1.08)}(r)\\
+                            Trabajo &\leftarrow r \cup o
+                        \end{align*}
                     }
                     \item {
                         Una lista con la \textbf{cantidad de empleados} que se
