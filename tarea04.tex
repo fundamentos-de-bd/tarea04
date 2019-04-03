@@ -38,7 +38,7 @@
             verifica que con ésta puedas satisfacer las siguientes consultas.
             \begin{figure}[H]
                 \centering
-                \includegraphics[scale=0.4]{img/museo.jpeg}
+               % \includegraphics[scale=0.4]{img/museo.jpeg}
                 \caption{Esquema relacional del Museo}
             \end{figure}
             \begin{enumerate}
@@ -100,11 +100,11 @@
                 Si tienes el siguiente esquema para una Base de Datos:
                 \begin{itemize}[label={}]
                     \item \textbf{Empleado}(CURP, nombre, calle, ciudad)
-                    \item \textbf{Trabaja}(CURP, idEmpresa, suelo)
+                    \item \textbf{Trabaja}(CURP, idEmpresa, sueldo)
                     \item \textbf{Empresa}(idEmpresa, nombre, ciudad)
                     \item \textbf{Jefe}(CURPJ, CURPE)
                 \end{itemize}
-                Considera que el suelo que reciben los empleados es mensual.
+                Considera que el sueldo que reciben los empleados es mensual.
                 Escribe una expresión en \textbf{Álgebra Relacional} para cada
                 una de las siguientes consultas
                 \begin{enumerate}
@@ -219,7 +219,7 @@
                             o &\leftarrow Trabaja - r \\
                             r &\leftarrow \pi_{CURP, idEmpresa, sueldo*1.08}(r)\\
                             r &\leftarrow \rho_{sueldo(sueldo*1.08)}(r)\\
-                            Trabajo &\leftarrow r \cup o
+                            Trabaja &\leftarrow r \cup o
                         \end{align*}
                     }
                     \item {
@@ -237,30 +237,88 @@
                         trabajan en \textbf{Panaphonics} y que ganen 
                         \textbf{menos de \$12,000 mensuales} aumentarles su
                         sueldo en un \textbf{10\%}.
+                         \begin{align*}
+                         r & \leftarrow \sigma_{nombre = 'Ziffcorp' \wedge sueldo = 18 000 }(Trabaja \bowtie Empresa)\\
+                         t & \leftarrow \pi_{CURP,idEmpresa,sueldo}(r)\\
+                         r & \leftarrow \pi_{CURP,idEmpresa,sueldo*0.92}(r)\\
+                         r & \leftarrow \rho_{sueldo(sueldo*0.92)}(r)\\
+                         s & \leftarrow \sigma_{nombre = 'Panaphonics' \wedge sueldo < 12 000 }(Trabaja \bowtie Empresa)\\
+                         w & \leftarrow \pi_{CURP,idEmpresa,sueldo}(s)\\
+                         s & \leftarrow \pi_{CURP,idEmpresa,sueldo*1.1}(s)\\
+                         s & \leftarrow \rho_{sueldo(sueldo*1.1)}(s)\\
+                         Trabaja & \leftarrow Trabaja - t -w \\
+                         Trabaja & \leftarrow Trabaja \cup r \cup s \\
+                         \end{align*}
                     }
                     \item {
                         Lista de los empleados que trabajen en \textbf{más de
                         dos compañías} y el \textbf{número de companías} en que 
                         laboran.
+                         \begin{align*}
+                         r & \leftarrow _{CURP}Y_{count(idEmpresa)}(Trabaja)\\
+                         r & \leftarrow \rho_{numComp(count(idEmpresa))}(r)\\
+                         r & \leftarrow \sigma_{numComp > 2}(r)\\
+                         \end{align*}
                     }
                     \item {
                         Lista que muestre la \textbf{CURP del jefe} y el
                         \textbf{número de empleados} que están a su cargo,
                         agrupados por companía.
+                         \begin{align*}                         
+                         r & \leftarrow _{idEmpresa,CURPJ}Y_{Count(CURPE)}(Empresa\bowtie_{CURP = CURPJ} Jefe )\\
+                         r & \leftarrow \rho_{numerodeEmpleados(Count(CURPE))}(r)
+                         \end{align*}
                     }
                     \item {
                         Una lista de los empleados que ganene \textbf{más de 
-                        \$140,000 mensuales} y ue \textbf{no viven} en
+                        \$140,000 mensuales} y que \textbf{no viven} en
                         \textbf{Springfield}.
+                        \begin{align*}
+                        	r & \leftarrow \pi_{CURP,Nombre} (\sigma_{sueldo >140000}(Empleado \bowtie Trabaja))\\
+                        	s & \leftarrow \pi_{CURP,Nombre} (\sigma_{ciudad= 'Springfield'\wedge sueldo >140000 }(Empleado \bowtie Trabaja))\\
+                        	r & \leftarrow r-s\\                        	
+                        \end{align*}
                     }
                     \item {
                         La empresa que paga el mayor \textbf{sueldo promedio}.
+                        \begin{align*}
+                        	r & \leftarrow _{idEmpresa}Y_{AVG(sueldo)}(Empresa \bowtie Trabaja)\\
+                        	r & \leftarrow \rho_{SueldoProm(AVG(sueldo))}(r)\\
+                        	s & \leftarrow Max_{SueldoProm}(r)\\
+                        	r & \leftarrow \sigma_{SueldoProm = s}(r)\\
+                        \end{align*}
                     }
                     \item {
                         \textbf{Moe Szyslak} decide dejar su bar y entrar a
                         trabajar a la planta nuclear, siendo su nuevo jefe
                         \textbf{Carl Carlson}. Refleja estos cambios en la base
                         de datos.
+                        \begin{enumerate}
+                        	\item  Suponiendo que el bar de Moe no es una empresa
+                        	\begin{align*}
+                        	r & \leftarrow Empleado \cup \{(CURP = 'curpMoe', nombre = 'MoeSzyslak',calle = 'c1', ciudad = 'Springfield')\}\\
+                        	idPN & \leftarrow \pi_{idEmpresa}(\sigma_{nombre='PlantaNuclear'}(Empresa))\\
+                        	Trabaja & \leftarrow Trabaja \cup \{(CURP = 'curpMoe',idEmpresa = idPN, sueldo = x)\}\\
+                        	cCarl & \leftarrow \pi_{CURP}(\sigma_{nombre = 'Carl Carlson'}(Empleado)) \\
+                        	Jefe & \leftarrow Jefe \cup \{(CURPJ = cCarl, CURPE = 'curpMoe')\} \\
+                        	\end{align*}
+                        	\item Suponiendo que el bar de Moe si es una empresa
+                        	\begin{align*}
+                        	c & \leftarrow \pi_{CURP}(\sigma_{nombre = 'Moe Szyslak'}(Empleado) )\\
+                        	cCarl & \leftarrow \pi_{CURP}(\sigma_{nombre = 'Carl Carlson'}(Empleado)) \\
+                        	idPN & \leftarrow \pi_{idEmpresa}(\sigma_{nombre='PlantaNuclear'}(Empresa))\\
+                        	t & \leftarrow \rho_{idE(idEmpresa)}(idPN)\\
+                        	r & \leftarrow \sigma_{CURP = c}(Trabaja)\\
+                        	s & \leftarrow \pi_{CURP,idE,sueldo}(r \bowtie t)\\
+                        	s & \leftarrow \rho_{idEmpresa(idE)}(s)\\
+                        	Trabaja & \leftarrow Trabaja - r\\
+                        	Trabaja & \leftarrow Trabaja \cup s\\
+                        	w & \leftarrow \sigma_{CURP = c} (Jefe)\\
+                        	Jefe & \leftarrow Jefe - w\\
+                        	Jefe & \leftarrow Jefe \cup \{(CURPJ = cCarl, CURPE = c)\} \\                           	
+                        	\end{align*}
+                        \end{enumerate}
+                        
                     }
                 \end{enumerate}
             }
