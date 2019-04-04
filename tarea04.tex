@@ -157,7 +157,19 @@
                     }
                     \item {
                         Lista con el  \textbf{nombre} de los empleados que viven
-                        en la \textbf{misma calle} y la \textbf{ciudad} de su
+                        en la \textbf{misma calle} y la \textbf{ciudad} de su jefe
+                        \begin{align*}
+                            cj &\leftarrow \rho_{CURP(CURPJ)}(\pi_{CURPJ}(Jefe)) \\
+                            cj &\leftarrow \rho_{CURPJ(CURP)}(Empleado \bowtie cj)\\
+                            cj &\leftarrow \rho_{ciudJ(ciudad)}(\rho_{calleJ(calle)}(cj))\\
+                            cj &\leftarrow \pi_{CURPJ,calleJ,ciudJ}(cj) \\
+                            ce &\leftarrow \rho_{CURP(CURPE)}(Jefe) \\
+                            ce &\leftarrow (Empleado \bowtie ce) \\
+                            ce &\leftarrow \pi_{CURPJ,calle,nombre,ciudad}(ce) \\
+                            r &\leftarrow  (ce \bowtie cj)\\
+                            r &\leftarrow \sigma_{calle == calleJ\land ciudJ == ciudad}(ce)\\
+                            r &\leftarrow \pi_{nombre}(r) \\
+                        \end{align*}
                     }
                     \item {
                         Averiguar la \textbf{CURP} de los empleados que no
@@ -205,10 +217,30 @@
                         Lista con el \textbf{nombre de las companías} que están
                         instaladas en una ciudad donde haya un
                         \textbf{Krusty Burger}.
+                        \begin{align*}
+                            r &\leftarrow \pi_{ciudad}(\sigma_{nombre = 'Krusty Burger'}(Empresa)) \\
+                            r &\leftarrow (Empresa \bowtie r) \\
+                            r &\leftarrow \pi_{nombre}(r) \\
+                        \end{align*}
                     }
                     \item {
                         Borrar toda la información de la companía
                         \textbf{Mapple}.
+                        \begin{align*}
+                            e &\leftarrow (\sigma_{nombre = 'Mapple'}(Empresa)) \\
+                            t &\leftarrow (e \bowtie Trabaja) \\
+                            t &\leftarrow \pi_{CURP,idEmpresa,sueldo}(t)\\
+                            em &\leftarrow (Empleado \bowtie t) \\
+                            em &\leftarrow \pi_{CURP,nombre,calle,ciudad}(em)\\
+                            jf &\leftarrow \rho_{CURPJ(CURP)}(Jefe) \\
+                            jf &\leftarrow (jf \bowtie t) \\
+                            jf &\leftarrow \rho_{CURP(CURPJ)}(jf) \\
+                            jf &\leftarrow \pi_{CURPJ,CURPE}(jf)\\
+                            Empleado &\leftarrow Empleado - em\\
+                            Trabaja &\leftarrow Trabaja - t\\
+                            Empresa &\leftarrow Empresa - e\\
+                            Jefe &\leftarrow Jefe - jf\\
+                        \end{align*}
                     }
                     \item {
                         Disminuir el sueldo de los empleados que trabajan en
@@ -225,10 +257,32 @@
                     \item {
                         Una lista con la \textbf{cantidad de empleados} que se
                         tienen por ciudad y por compañía.
+                         \begin{align*}
+                            r &\leftarrow (Empresa \bowtie Trabaja)\\
+                            r &\leftarrow _{idEmpresa,ciudad}Y_{Count(CURP)}(r)\\
+                            r &\leftarrow \rho_{numerodeEmpleados(Count(CURP))}(r)\\
+                            r &\leftarrow \pi_{idEmpresa,ciudad,numeroEmpleados}(r)\\
+                         \end{align*}
                     }
                     \item {
                         Cambiar la ubicación de \textbf{Sorby} (y de 
                         \textbf{todos sus empleados}) a \textbf{Ciudad Capital}.
+                         \begin{align*}
+                            r &\leftarrow (\sigma_{nombre = 'Sorby'}(Empresa))\\
+                            cte &\leftarrow \pi_{idEmpresa}(r)\\
+                            t &\leftarrow (Trabaja \bowtie cte)\\
+                            t &\leftarrow \pi_{CURP}(t)
+                            cte &\leftarrow (idEmpresa, ciudad='Ciudad Capital')\\
+                            Empresa &\leftarrow Empresa - r \\
+                            r &\leftarrow (\pi_{idEmpresa,nombre}(r) \bowtie cte)\\
+                            Empresa &\leftarrow Empresa \cup r\\
+                            cte &\leftarrow \pi_{CURP,ciudad}(cte \bowtie Trabaja)\\
+                            em &\leftarrow \rho_{ciudadOld(ciudad)}(Empleado)\\
+                            em &\leftarrow \pi_{CURP,nombre,calle}(em \bowtie t)\\
+                            cte &\leftarrow (cte \bowtie em)\\
+                            Empleado &\leftarrow Empleado - (t \bowtie Empleado)\\
+                            Empleado &\leftarrow Empleado \cup cte\\
+                         \end{align*}
                     }
                     \item {
                         A los empleados que trabajan en \textbf{Ziffcorp} y que
